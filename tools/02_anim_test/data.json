@@ -1,0 +1,7 @@
+{
+    "imageOverlayLabel": "Test",
+    "command": "print('test')",
+    "annotation": "Connect animation for skinning tests",
+    "image": "commandButton.png",
+    "sourceType": "python"
+}
