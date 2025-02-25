@@ -1,0 +1,6 @@
+{
+    "imageOverlayLabel": "LRA",
+    "sourceType": "python",
+    "annotation": "Включает и выключает локальные оси вращения \n(с \"Шифтом\" - точку вращения) \nКоманда в контекстном меню \"hide_all_pivots_and_axis\" \nскрывает все оси и точки \nвращения в сцене.",
+    "image": "menuIconDisplay.png"
+}

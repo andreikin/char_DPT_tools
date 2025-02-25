@@ -1,0 +1,6 @@
+{
+    "imageOverlayLabel": "Hier",
+    "command": "SelectHierarchy",
+    "annotation": "Выделяет всю иерархию ниже \nвыделенного обьекта",
+    "sourceType": "mel"
+}
