@@ -117,7 +117,7 @@ def add_buttons(tool_folder_path=None, scripts_path=None, icon_path=None):
 if __name__ == '__main__':
     scripts_path = 'C:\\Users\\avbeliaev\\Documents\\maya\\2019\\scripts'
     icon_path = "C:\\Users\\avbeliaev\\Documents\\maya\\2019\\prefs\\icons"
-    tool_folder_path = 'D:\\Projects\\Python\\char_dpt_tools\\tools\\08_rivet'
+    tool_folder_path = 'D:\\Projects\\Python\\char_dpt_tools\\tools\\09_devider'
     add_buttons(tool_folder_path, scripts_path, icon_path)
 
 

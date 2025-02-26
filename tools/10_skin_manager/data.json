@@ -1,0 +1,8 @@
+{
+    "imageOverlayLabel": "Manag",
+    "sourceType": "python",
+    "overlayLabelColor": [1, 1, 1],
+    "command": "import skin_weight_manager\nskin_weight_manager.skin_weight_manager()",
+    "scripts_list": ["skin_weight_manager.py"],
+    "annotation": "Запускает окно программы \"Skin_weight_manager\""
+}

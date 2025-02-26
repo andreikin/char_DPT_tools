@@ -1,5 +1,5 @@
 {
-    "imageOverlayLabel": "rivet",
+    "imageOverlayLabel": "Rivet",
     "sourceType": "python",
     "overlayLabelColor": [1, 1, 1],
     "annotation": "Создает локатор привязанный к \nвыделенному полигональному фейсу \nили паре ребер"
