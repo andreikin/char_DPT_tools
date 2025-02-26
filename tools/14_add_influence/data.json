@@ -1,0 +1,7 @@
+{
+    "imageOverlayLabel": "",
+    "command": "AddInfluence",
+    "annotation": "Добавить сустав в скин кластер",
+    "image": "commandButton.png",
+    "sourceType": "mel"
+}

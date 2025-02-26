@@ -1,0 +1,7 @@
+{
+    "imageOverlayLabel": "",
+    "command": "DetachSkin",
+    "annotation": "Удалить скин кластер",
+    "image": "commandButton.png",
+    "sourceType": "mel"
+}
