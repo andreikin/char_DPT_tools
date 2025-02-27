@@ -55,6 +55,13 @@ def add_buttons(tool_folder_path=None, scripts_path=None, icon_path=None):
             "sourceType": "python",
             "scripts_list":  list of scripts that need to be copied to the Maya scripts folder 
     """
+
+
+    if tool_folder_path[-9:] == 'separator':
+        print (tool_folder_path[-9:])
+        cmds.separator(parent=SHELF_NAME, style="shelf",  highlightColor=[0.321569, 0.521569, 0.65098], height=20)
+        return
+
     #  -----------------------  Data verification
     json_file = os.path.join(tool_folder_path, DATA_FILE_NAME)
     if not os.path.exists(json_file):
@@ -73,7 +80,7 @@ def add_buttons(tool_folder_path=None, scripts_path=None, icon_path=None):
             shutil.copy2(source_script_file, dest_script_path)
 
     #   -----------------------  Create general settings for the button
-    data = {'parent': SHELF_NAME, 'overlayLabelColor': [1, 1, 1], 'overlayLabelBackColor': [0, 0, 0, 1]}
+    data = {'parent': SHELF_NAME, 'overlayLabelColor': [1, 1, 1], 'overlayLabelBackColor': [0.268, 0.268, 0.268, 1]}
 
     for k, v in json_data.items():
         val = v.encode('utf-8') if isinstance(v, str) else v
@@ -115,9 +122,10 @@ def add_buttons(tool_folder_path=None, scripts_path=None, icon_path=None):
 
 
 if __name__ == '__main__':
+    print('__________________________________')
     scripts_path = 'C:\\Users\\avbeliaev\\Documents\\maya\\2019\\scripts'
     icon_path = "C:\\Users\\avbeliaev\\Documents\\maya\\2019\\prefs\\icons"
-    tool_folder_path = 'D:\\Projects\\Python\\char_dpt_tools\\tools\\09_devider'
+    tool_folder_path = 'D:\\Projects\\Python\\char_dpt_tools\\tools\\099_separator'
     add_buttons(tool_folder_path, scripts_path, icon_path)
 
 
@@ -125,3 +133,4 @@ if __name__ == '__main__':
 
 
 
+# cmds.separator( height=10, style='double' )

@@ -3,5 +3,5 @@
     "command": "ArtPaintSkinWeightsTool",
     "annotation": "Инструмент PaintSkinWeights",
     "image": "commandButton.png",
-    "sourceType": "mel"
+    "sourceType": "python"
 }

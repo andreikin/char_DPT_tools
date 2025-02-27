@@ -1,5 +1,5 @@
 {
-    "imageOverlayLabel": "Manag",
+    "imageOverlayLabel": "Skin",
     "sourceType": "python",
     "overlayLabelColor": [1, 1, 1],
     "command": "import skin_weight_manager\nskin_weight_manager.skin_weight_manager()",
