@@ -6,7 +6,6 @@ import re
 import shutil
 import maya.cmds as cmds
 
-
 SHELF_NAME = "Char_DPT_tools"
 COMMAND_FILE_NAME = 'command'
 TOOLS_FOLDER_NAME = "tools"
@@ -15,9 +14,21 @@ ICON_FILE_NAME = 'icon.png'
 SCRIPT_FILE_NAME = 'script.py'
 ITEMS_FOLDER_NAME = 'menu_items'
 
-def onMayaDroppedPythonFile(obj):
 
+def onMayaDroppedPythonFile(obj):
+    """
+    Function launched when a file is dropped into the Maya program
+    """
+    install_Char_DPT_tools()
+
+
+def install_Char_DPT_tools(distrib_path=None):
+    """
+    Creates shelves and buttons
+    """
     # ----------------------- get maya paths
+    if not distrib_path:
+        distrib_path = os.path.dirname(__file__)
     maya_version = cmds.about(version=True)
     pattern_shelves = r'.+' + maya_version + '/prefs/shelves'
     shelves_path = [x for x in os.environ['MAYA_SCRIPT_PATH'].split(';') if re.match(pattern_shelves, x)][0]
@@ -27,7 +38,6 @@ def onMayaDroppedPythonFile(obj):
 
     pattern_icons = r'.+' + maya_version + '/prefs/icons'
     icon_path = [x for x in os.environ['XBMLANGPATH'].split(';') if re.match(pattern_icons, x)][0]
-    distrib_path = os.path.dirname(__file__)
 
     # ----------------------- remove old version if exists and create new one
     if cmds.shelfLayout(SHELF_NAME, exists=True):
@@ -56,9 +66,7 @@ def add_buttons(tool_folder_path=None, scripts_path=None, icon_path=None):
             "scripts_list":  list of scripts that need to be copied to the Maya scripts folder 
     """
 
-
     if tool_folder_path[-9:] == 'separator':
-        print (tool_folder_path[-9:])
         cmds.separator(parent=SHELF_NAME, style="shelf",  highlightColor=[0.321569, 0.521569, 0.65098], height=20)
         return
 
@@ -122,15 +130,8 @@ def add_buttons(tool_folder_path=None, scripts_path=None, icon_path=None):
 
 
 if __name__ == '__main__':
-    print('__________________________________')
-    scripts_path = 'C:\\Users\\avbeliaev\\Documents\\maya\\2019\\scripts'
-    icon_path = "C:\\Users\\avbeliaev\\Documents\\maya\\2019\\prefs\\icons"
-    tool_folder_path = 'D:\\Projects\\Python\\char_dpt_tools\\tools\\099_separator'
-    add_buttons(tool_folder_path, scripts_path, icon_path)
-
-
-
-
-
-
-# cmds.separator( height=10, style='double' )
+    # scripts_path = 'C:\\Users\\avbeliaev\\Documents\\maya\\2019\\scripts'
+    # icon_path = "C:\\Users\\avbeliaev\\Documents\\maya\\2019\\prefs\\icons"
+    # tool_folder_path = 'D:\\Projects\\Python\\char_dpt_tools\\tools\\099_separator'
+    # add_buttons(tool_folder_path, scripts_path, icon_path)
+    install_Char_DPT_tools()

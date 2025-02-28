@@ -1,0 +1,7 @@
+{
+    "imageOverlayLabel": "RUI",
+    "command": "RemoveUnusedInfluences",
+    "annotation": "Удаляет неиспользуемые обьекты влияния",
+    "image": "commandButton.png",
+    "sourceType": "mel"
+}

@@ -1,0 +1,7 @@
+{
+    "imageOverlayLabel": "",
+    "command": "import maya, subprocess, os\nimport maya.OpenMaya as om\n\ndef open_scene_in_explorer():\n    path = os.path.dirname(maya.cmds.file(q=True, sn=True))\n    if path:\n        subprocess.Popen('explorer \"%s\"' % os.path.abspath(path))\n    else:\n        om.MGlobal.displayError('Scene has not been saved and therefore cannot be opened in Explorer!')\n\nopen_scene_in_explorer()",
+    "annotation": "Открывает директорию в которой находится текущая сцена",
+    "image": "commandButton.png",
+    "sourceType": "python"
+}

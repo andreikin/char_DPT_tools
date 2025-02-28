@@ -1,5 +1,5 @@
 {
-    "imageOverlayLabel": "jnt",
+    "imageOverlayLabel": "Joint",
     "command": "import maya.cmds as cmds\ncmds.jointDisplayScale(cmds.jointDisplayScale( q=True )*0.7 )",
     "sourceType": "python",
     "annotation": "Уменьшает размер всех косточек в сцене",
