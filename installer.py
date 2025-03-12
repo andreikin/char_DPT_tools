@@ -128,10 +128,6 @@ def add_buttons(tool_folder_path=None, scripts_path=None, icon_path=None):
     cmds.shelfButton(**data)
 
 
-
 if __name__ == '__main__':
-    # scripts_path = 'C:\\Users\\avbeliaev\\Documents\\maya\\2019\\scripts'
-    # icon_path = "C:\\Users\\avbeliaev\\Documents\\maya\\2019\\prefs\\icons"
-    # tool_folder_path = 'D:\\Projects\\Python\\char_dpt_tools\\tools\\099_separator'
-    # add_buttons(tool_folder_path, scripts_path, icon_path)
-    install_Char_DPT_tools()
+    path = 'U:\AssetStorage\CharTools\char_dpt_tools'
+    install_Char_DPT_tools(path)
