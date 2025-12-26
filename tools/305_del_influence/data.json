@@ -1,7 +1,5 @@
 {
-    "imageOverlayLabel": "",
     "command": "RemoveInfluence",
     "annotation": "Убрать сустав из скин кластера",
-    "image": "commandButton.png",
     "sourceType": "mel"
 }

@@ -1,7 +1,5 @@
 {
-    "imageOverlayLabel": "",
     "command": "SmoothBindSkin",
     "annotation": "Создать скин кластер",
-    "image": "commandButton.png",
     "sourceType": "mel"
 }

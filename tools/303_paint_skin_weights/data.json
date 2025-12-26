@@ -1,7 +1,5 @@
 {
-    "imageOverlayLabel": "",
     "command": "ArtPaintSkinWeightsTool",
     "annotation": "Инструмент PaintSkinWeights",
-    "image": "commandButton.png",
     "sourceType": "python"
 }

@@ -2,6 +2,5 @@
     "imageOverlayLabel": "Joint",
     "command": "JointTool",
     "annotation": "Создает цепочку костей",
-    "image": "commandButton.png",
     "sourceType": "mel"
 }

@@ -2,6 +2,5 @@
     "imageOverlayLabel": "Attr",
     "command": "DeleteHistory",
     "annotation": "Перемещает выделенный в панели каналов атрибут ниже",
-    "image": "commandButton.png",
     "sourceType": "mel"
 }

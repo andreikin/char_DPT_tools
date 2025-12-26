@@ -2,6 +2,5 @@
     "imageOverlayLabel": "Hist",
     "command": "DeleteHistory",
     "annotation": "Удаляет историю выделенных обьектов",
-    "image": "commandButton.png",
     "sourceType": "mel"
 }
