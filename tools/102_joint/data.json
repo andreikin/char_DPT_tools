@@ -1,6 +1,0 @@
-{
-    "imageOverlayLabel": "Joint",
-    "command": "JointTool",
-    "annotation": "Создает цепочку костей",
-    "sourceType": "mel"
-}

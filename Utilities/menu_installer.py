@@ -128,6 +128,7 @@ class ToolDataAssembler:
         json_data = self.load_json()
         self.annotation = json_data.get('annotation', self.label)
         self.shelf_label = json_data.get('shelf_label', self.label)
+        self.hotkey = json_data.get('hotkey')
 
 
     @property
@@ -465,6 +466,10 @@ def onMayaDroppedPythonFile(obj):
 
 
 if __name__ == '__main__':
-    # ToolsStructure(r"D:\Projects\Python\char_dpt_tools\Char_DPT_tools").build_structure()
 
-    path = r"/Char_DPT_tools\_rigging_tools"
+    tool_folder_path = r"/Utilities/script_template"
+    om.MGlobal.displayInfo('The was successfully executed.')
+
+
+
+

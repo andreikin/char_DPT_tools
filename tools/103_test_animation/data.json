@@ -1,8 +1,0 @@
-{
-    "label": "Animation test",
-    "imageOverlayLabel": "Anim",
-    "command": "import anim_test; anim_test.test_animation()",
-    "annotation": "Connect animation for skinning tests",
-    "sourceType": "python",
-    "scripts_list": ["anim_test.py"]
-}
