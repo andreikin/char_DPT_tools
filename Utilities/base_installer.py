@@ -3,7 +3,7 @@
 
 """
 Main Procedure:
-    base_installer()
+    onMayaDroppedPythonFile()
 
 Creation Date:
     10.04.2026
@@ -13,9 +13,40 @@ Authors:
     andreikin@mail.ru
 
 Description:
+        This file is a universal installer and launcher for the Char_DPT_tools
+    toolset inside Autodesk Maya.
+
+    It provides a framework that allows artists and TDs to organize tools
+    in simple folder structures and automatically expose them as:
+
+        • Maya main menu items
+        • Maya shelf buttons
+        • Optional shelf popup menus
+        • Automatic startup menu loading
 
 Installation:
+        There is no manual setup required.
 
+    To install, rename file to menu_installer.py, shelf_installer.py or button_installer.py and
+    simply drag and drop one of the installer files into Maya:
+
+        1. menu_installer.py
+           → Installs the "Char_DPT_tools" menu in Maya.
+
+        2. shelf_installer.py
+           → Creates the "Char_DPT_shelf" shelf with tool buttons.
+
+        3. button_installer.py
+           → Creates a single shelf button for this tool only.
+
+    During installation the script will:
+        • Copy launcher.py into Maya user scripts directory
+        • Add menu creation command into userSetup.py
+        • Ask for the root folder where tools are stored
+        • Build the menu/shelf automatically
+
+    After installation, Maya will recreate the menu automatically
+    on every startup.
 """
 
 import sys
@@ -140,19 +171,26 @@ class ScriptLauncher:
             with open(self.stats_json_path, "w") as f:
                 json.dump(data, f, indent=4, ensure_ascii=False)
 
-            print('The  script was successfully executed.')
+            om.MGlobal.displayInfo('The ' + script_name + ' script was successfully executed.')
 
         except Exception as message:
             om.MGlobal.displayError(message)
 
     @staticmethod
     def copy_launcher():
+        """
+        Copies this launcher file into Maya's user scripts directory
+        """
         srs = __file__
         dst = os.path.join(maya_paths()['scripts_path'], 'launcher.py')
         shutil.copy(srs, dst)
 
 
 class ToolDataAssembler:
+    """
+    This class reads the folder content and converts it into
+    dictionaries suitable for cmds.menuItem and cmds.shelfButton.
+    """
     ICON_FILE_NAME = 'icon.png'
     SCRIPT_FILE_NAME = 'script.py'
     DATA_FILE_NAME = 'data.json'
@@ -169,10 +207,11 @@ class ToolDataAssembler:
         self.shelf_label = json_data.get('shelf_label', self.label)
         self.hotkey = json_data.get('hotkey')
 
-
     @property
     def item_data(self):
-        """Generating data to create a menu item"""
+        """
+        Generates a dictionary used to create a Maya menu item.
+        """
         data = {'label': self.label,
                 'command': ToolDataAssembler.__menu_command(ScriptLauncher().launch, self.tool_folder_path),
                 'sourceType': 'python',
@@ -184,6 +223,9 @@ class ToolDataAssembler:
 
     @property
     def button_data(self):
+        """
+        Generates a dictionary used to create a Maya shelf button.
+        """
         data = {'parent': self.__get_current_shelf(),
                 'overlayLabelColor': [1, 1, 1],
                 'overlayLabelBackColor': [0.268, 0.268, 0.268, 0.8],
@@ -203,7 +245,9 @@ class ToolDataAssembler:
         return data
 
     def btn_menu(self):
-        """Get data to create a button menu"""
+        """
+        Builds submenu data for a shelf button from 'menu_items' folder.
+        """
         menu_item = list()
         menu_item_python = list()
 
@@ -218,12 +262,18 @@ class ToolDataAssembler:
 
     @staticmethod
     def command(tool_folder_path):
+        """
+        Builds a Python command string executed by Maya UI elements.
+        """
         command = 'from launcher import *\n'
         command += ('tool_folder_path = r"' + tool_folder_path + '"\n')
         command += 'ScriptLauncher().launch(tool_folder_path)'
         return command
 
     def get_icon(self):
+        """
+        Returns path to tool icon if exists, otherwise default Maya icon.
+        """
         icon_file = os.path.join(self.tool_folder_path, self.ICON_FILE_NAME)
         if os.path.exists(icon_file):
             return icon_file
@@ -264,7 +314,7 @@ class ToolDataAssembler:
     @staticmethod
     def __menu_command(func, *args, **kwargs):
         """
-        Helper function for creating unique commands in a loop
+        Creates unique callback functions for menu items created in loops.
         """
 
         def _callback(*_):
@@ -275,7 +325,7 @@ class ToolDataAssembler:
     @staticmethod
     def __get_current_shelf():
         """
-        Returns the name of the currently active shelf in Maya.
+        Detects the currently active Maya shelf.
         """
         shelf_top_level = mel.eval('$tmp = $gShelfTopLevel')
         current_shelf = cmds.shelfTabLayout(shelf_top_level, q=True, selectTab=True)
@@ -283,11 +333,18 @@ class ToolDataAssembler:
 
 
 class ToolsStructure:
+    """
+    Scans the tools root directory and builds hierarchical structure
+    for menu and shelf creation.
+    """
     def __init__(self, tools_folder):
         self.tools_folder = tools_folder
 
     @staticmethod
     def is_tool(folder_path):
+        """
+        Determines whether a folder represents a valid tool.
+        """
         if any([os.path.isfile(os.path.join(folder_path, "script.py")),
                 os.path.isfile(os.path.join(folder_path, "script.mel")),
                 os.path.isdir(os.path.join(folder_path, "menu_items"))]):
@@ -296,6 +353,9 @@ class ToolsStructure:
             return False
 
     def build_structure(self):
+        """
+        Builds dictionary describing tools grouped by subfolders.
+        """
         tools_structure = dict()
         other_scripts = list()
 
@@ -318,12 +378,23 @@ class ToolsStructure:
 
 
 class CharDepTools:
+    """
+    High-level class responsible for creating Maya UI:
+        - Main menu
+        - Shelf
+        - Shelf button
+        - Managing user settings
 
+    This is the class used during installation.
+    """
     def __init__(self):
         pass
 
     @staticmethod
     def menu():
+        """
+        Creates or rebuilds the main Maya menu for all tools.
+        """
         try:
             if cmds.menu(MENU, exists=True):
                 cmds.deleteUI(MENU)
@@ -360,6 +431,9 @@ class CharDepTools:
 
     @staticmethod
     def shelf():
+        """
+        Creates a dedicated Maya shelf and fills it with tool buttons.
+        """
         # ----------------------- remove old version if exists and create new one
         if cmds.shelfLayout(SHELF_NAME, exists=True):
             CharDepTools.delete_shelf(SHELF_NAME)
@@ -379,12 +453,18 @@ class CharDepTools:
 
     @staticmethod
     def script():
+        """
+        Adds a single shelf button for the current script directory.
+        """
         script_dir = os.path.dirname(os.path.abspath(__file__))
         data_obj = ToolDataAssembler(script_dir)
         cmds.shelfButton(**data_obj.button_data)
 
     @staticmethod
     def delete_shelf(shelf_name):
+        """
+        Completely removes a Maya shelf and its configuration.
+        """
 
         gShelfTopLevel = mel.eval('$tmp = $gShelfTopLevel')
 
@@ -438,7 +518,9 @@ class CharDepTools:
 
     @staticmethod
     def set_path(*args):
-
+        """
+        Opens dialog to select tools root folder and stores it in QSettings.
+        """
         path_in_settings = QSettings("Char_DTP_tools", "Settings").value("path")
         default_dir = str(path_in_settings) if os.path.isdir(path_in_settings) else QtCore.QDir.currentPath()
 
@@ -452,6 +534,10 @@ class CharDepTools:
 
     @staticmethod
     def add_command_to_user_setup():
+        """
+        Adds menu creation command into Maya userSetup.py
+        so the menu loads automatically on Maya startup.
+        """
         filename = os.path.join(maya_paths()['scripts_path'], "userSetup.py")
 
         command_lines = ["import maya.cmds as cmds",
@@ -468,6 +554,11 @@ class CharDepTools:
                     f.write(command + '\n')
 
 def maya_paths():
+    """
+    Detects Maya user directories for:
+        - scripts
+        - icons
+    """
     paths = dict()
     maya_version = cmds.about(version=True)
 
@@ -481,7 +572,16 @@ def maya_paths():
 
 def onMayaDroppedPythonFile(obj):
     """
-    Function launched when a file is dropped into the Maya program
+    Entry point triggered when this file is dragged into Maya viewport.
+
+    Behavior depends on file name:
+        - menu_installer.py   → installs menu
+        - shelf_installer.py  → installs shelf
+        - button_installer.py → installs single shelf button
+
+    Also:
+        - Copies launcher to Maya scripts folder
+        - Adds startup command to userSetup.py
     """
 
     ScriptLauncher.copy_launcher()
@@ -506,10 +606,6 @@ def onMayaDroppedPythonFile(obj):
         om.MGlobal.displayInfo('The ' + os.path.basename(dir_name) + ' installation was successful.')
 
 
-if __name__ == '__main__':
-    pass
-    # tool_folder_path = r"/Utilities/script_template"
-    # om.MGlobal.displayInfo('The was successfully executed.')
 
 
 
