@@ -219,7 +219,7 @@ class ToolDataAssembler:
         """
         Creates a Maya hotkey for the tool based on data from data.json.
         """
-        if not self.hotkey and not self.hotkey.get("key"):
+        if not self.hotkey or not self.hotkey.get("key"):
             return
 
         name = self.label + 'hotkey'
