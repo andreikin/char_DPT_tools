@@ -1,0 +1,6 @@
+{
+    "imageOverlayLabel": "Hist",
+    "command": "DeleteHistory",
+    "annotation": "Удаляет историю выделенных обьектов",
+    "sourceType": "mel"
+}

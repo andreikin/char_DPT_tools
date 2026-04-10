@@ -1,0 +1,5 @@
+{
+    "annotation": "Запускает окно программы \"Skin_weight_manager",
+    "shelf_label": "skin",
+    "hotkey": {"key":"s", "ctl":true, "alt": false, "shif": true}
+}

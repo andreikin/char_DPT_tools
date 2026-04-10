@@ -30,3 +30,4 @@ def update_directory(directory):
 if __name__ == '__main__':
     update_directory(r'D:\Projects\Python\char_dpt_tools\Char_DPT_tools')
     update_directory(r'D:\Projects\Python\char_dpt_tools\Char_DPT_shelf')
+    update_directory(r'D:\Projects\Python\char_dpt_tools\Utilities\script_template')

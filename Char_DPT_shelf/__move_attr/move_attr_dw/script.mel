@@ -1,0 +1,98 @@
+global proc string[] am_attrParents(string $initList[], string $node){
+	string $returnList[];
+	int $i=0;
+	for ($item in $initList){
+		string $parentAttr[] = `attributeQuery -node $node -listParent $item`;
+		// if attribute has a parent, remove the attribute from the list and add the parent, if it's not there already
+		if (`size $parentAttr`){
+			if (!stringArrayContains($parentAttr[0], $returnList)){
+				$returnList[$i] = $parentAttr[0];
+				$i++;
+			}
+		} else {
+			$returnList[$i] = $item;
+			$i++;
+		}
+		
+	}
+	return $returnList;
+}
+
+
+global proc am_attrShift(int $mode){
+	string $obj[] = `channelBox -q -mol mainChannelBox`;
+	int $size = `size $obj`;
+	if (`size $obj`){
+		string $attr[] = `channelBox -q -sma mainChannelBox`;
+		if (`size $attr`){
+			for ($eachObj in $obj){
+				string $udAttr[] = `listAttr -ud $eachObj`;
+				if (!`stringArrayContains $attr[0] $udAttr`){
+					error "Selected attribute is static and cannot be shifted.";
+				}
+
+				//Temporarily unlock user defined attributes
+				string $attrLock[] = `listAttr -ud -l $eachObj`;
+				if (`size $attrLock`){
+					for ($alck in $attrLock){
+						setAttr -l false ($eachObj + "." + $alck);
+					}
+				}
+
+				//Shift down
+				if ($mode == 0){
+					string $sort[];
+					if (`size $attr` > 1){
+						$sort = kz_reverse($attr);
+					} else if (`size $attr` == 1){
+						$sort = $attr;
+					}
+					//Remove leaf attributes
+					$sort =  am_attrParents($sort, $eachObj);
+					for ($s in $sort){
+						string $attrLs[] = `listAttr -ud $eachObj`;
+						//Flatten user defined attributes to compound parents
+						$attrLs = am_attrParents($attrLs, $eachObj);
+						int $attrSize = `size $attrLs`;
+						int $attrPos = stringArrayFind($s, 0 , $attrLs);
+						deleteAttr -at $attrLs[$attrPos] $eachObj;
+						undo;
+						int $range = ($attrPos+2);
+						for ($x=($attrPos+2); $x<$attrSize; $x++){
+							deleteAttr -at $attrLs[$x];
+							undo;
+						}
+					}
+				}
+				//Shift up
+				if ($mode == 1){
+					//Remove leaf attributes
+					$attr =  am_attrParents($attr, $eachObj);
+					for ($a in $attr){
+						string $attrLs[] = `listAttr -ud $eachObj`;
+						$attrLs = am_attrParents($attrLs, $eachObj);
+						int $attrSize = `size $attrLs`;
+						int $attrPos = stringArrayFind($a, 0, $attrLs);
+						if ($attrPos > 0 && $attrLs[$attrPos-1] != ""){
+							deleteAttr -at $attrLs[$attrPos-1] $eachObj; // 
+							undo;
+						}
+						for ($x = ($attrPos+1); $x<$attrSize; $x++){
+							deleteAttr -at $attrLs[$x] $eachObj;
+							undo;
+						}
+					}
+				}
+				//Relock
+				if (`size $attrLock`){
+					for ($alck in $attrLock){
+						setAttr -l true ($eachObj + "." +  $alck);
+					}
+				}
+			}
+		}
+	}
+}
+
+
+am_attrShift(0)

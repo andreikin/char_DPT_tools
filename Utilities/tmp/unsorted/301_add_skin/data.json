@@ -1,0 +1,5 @@
+{
+    "command": "SmoothBindSkin",
+    "annotation": "Создать скин кластер",
+    "sourceType": "mel"
+}

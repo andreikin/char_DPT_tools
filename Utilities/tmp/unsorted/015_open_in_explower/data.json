@@ -1,0 +1,5 @@
+{
+    "annotation": "Открывает директорию в которой находится текущая сцена",
+    "shelf_label": "open",
+    "hotkey": {"key":"a", "ctl":true, "alt": false, "shif": true}
+}

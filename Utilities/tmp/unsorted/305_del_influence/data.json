@@ -1,0 +1,5 @@
+{
+    "command": "RemoveInfluence",
+    "annotation": "Убрать сустав из скин кластера",
+    "sourceType": "mel"
+}

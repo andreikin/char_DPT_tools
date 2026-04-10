@@ -1,0 +1,5 @@
+{
+    "annotation": "Это тестовый текст всплывающей подсказки \n слеш эн это знак переноса строки",
+    "shelf_label": "tool",
+    "hotkey": {"key":false, "ctl":true, "alt": false, "shif": true}
+}

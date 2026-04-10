@@ -1,0 +1,6 @@
+{
+    "imageOverlayLabel": "Attr",
+    "command": "DeleteHistory",
+    "annotation": "Перемещает выделенный в панели каналов атрибут выше",
+    "sourceType": "mel"
+}

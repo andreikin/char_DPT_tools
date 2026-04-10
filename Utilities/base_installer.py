@@ -207,8 +207,38 @@ class ToolDataAssembler:
         self.shelf_label = json_data.get('shelf_label', self.label)
         self.hotkey = json_data.get('hotkey')
 
+    @staticmethod
+    def hotkey_command(tool_folder_path):
+        """Builds a MEL command string that executes with hotkey."""
+        python_code = 'from launcher import * ; ScriptLauncher().launch("' + tool_folder_path + '")'
+        python_code_escaped = python_code.replace('\\', '\\\\').replace('"', '\\"')
+        mel_command = 'python("' + python_code_escaped + '")'
+        return mel_command
+
+    def add_hotkey(self):
+        """
+        Creates a Maya hotkey for the tool based on data from data.json.
+        """
+        if not self.hotkey and not self.hotkey.get("key"):
+            return
+
+        name = self.label + 'hotkey'
+        command_string = self.hotkey_command(self.tool_folder_path)
+        cmds.nameCommand(name, annotation=self.annotation, command=command_string)
+
+        # --- Hotkey ---
+        cmds.hotkey(
+            keyShortcut=self.hotkey.get('key'),
+            ctrlModifier=self.hotkey.get('ctl'),
+            shiftModifier=self.hotkey.get('shif'),
+            altModifier=self.hotkey.get('alt'),
+            name=name
+        )
+        om.MGlobal.displayInfo('The ' + self.label + ' hotkey added successful.')
+
     @property
     def item_data(self):
+        self.add_hotkey()
         """
         Generates a dictionary used to create a Maya menu item.
         """
@@ -226,6 +256,8 @@ class ToolDataAssembler:
         """
         Generates a dictionary used to create a Maya shelf button.
         """
+        self.add_hotkey()
+
         data = {'parent': self.__get_current_shelf(),
                 'overlayLabelColor': [1, 1, 1],
                 'overlayLabelBackColor': [0.268, 0.268, 0.268, 0.8],
