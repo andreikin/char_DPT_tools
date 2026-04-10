@@ -1,8 +1,30 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+"""
+Main Procedure:
+    base_installer()
+
+Creation Date:
+    10.04.2026
+
+Authors:
+    Belyaev Andrey
+    andreikin@mail.ru
+
+Description:
+
+Installation:
+
+"""
+
+import sys
+sys.dont_write_bytecode = True
+
 from contextlib import contextmanager
 import os
 import re
 import shutil
-import sys
 import json
 import maya.cmds as cmds
 import maya.mel as mel
@@ -11,24 +33,33 @@ import maya.OpenMaya as om
 from PySide2 import QtCore, QtWidgets
 from PySide2.QtCore import QSettings
 
+INSTALLER_VERSION = '1.0.0'
 MENU = 'script_manager_menu'
 MENU_LABEL = 'Char_DPT_tools'
 SHELF_NAME = "Char_DPT_shelf"
 
 
 class ScriptLauncher:
-    LAUNCHER_VERSION = '1.0.0'
+    """
+      Responsible for launching Maya tools located in a tool folder.
+      This class:
+          1. Adds the module path temporarily to sys.path (if exists)
+          2. Executes Python or MEL script
+          3. Tracks tool usage statistics in a JSON file
+          4. Can copy itself into Maya scripts directory for global access
+      """
     SCRIPT_PY_NAME = 'script.py'
     SCRIPT_MEL_NAME = 'script.mel'
     MODULES_FOLDER = 'module'
 
     def __init__(self, stats_json_path="U:\CharDptRepository\char_dpt_tools\scripts_stats.json"):
-
         self.stats_json_path = stats_json_path
 
     @contextmanager
     def temp_sys_path(self, path):
-
+        """
+        Context manager that temporarily inserts a path into sys.path.
+        """
         if path not in sys.path:
             sys.path.insert(0, path)
             added = True
@@ -41,7 +72,9 @@ class ScriptLauncher:
                 sys.path.remove(path)
 
     def run_python(self, py_path, module_path=None):
-
+        """
+        Executes a Python script in an isolated global context.
+        """
         if os.path.exists(py_path):
             globals_dict = {"__file__": py_path, "__name__": "__main__"}
             if module_path:
@@ -51,14 +84,18 @@ class ScriptLauncher:
                 exec (compile(open(py_path, "rb").read(), py_path, 'exec'), globals_dict)
 
     def run_mel(self, script_path):
-
+        """
+        Executes a MEL script inside Maya.
+        """
         if os.path.exists(script_path):
             with open(script_path, 'r') as f:
                 mel_code = f.read()
             mel.eval(mel_code)
 
     def launch(self, tool_folder_path):
-
+        """
+        Main entry point for launching a tool. Also increments execution statistics.
+        """
         try:
             module_folder = os.path.join(tool_folder_path, 'module')
             module_path = None
@@ -81,7 +118,9 @@ class ScriptLauncher:
             om.MGlobal.displayError(message)
 
     def increment_script_counter(self, script_name):
-
+        """
+        Increments launch counter for a tool in the statistics JSON file.
+        """
         try:
             if not os.path.exists(self.stats_json_path):
                 data = {}
@@ -322,7 +361,8 @@ class CharDepTools:
     @staticmethod
     def shelf():
         # ----------------------- remove old version if exists and create new one
-        CharDepTools.delete_shelf(SHELF_NAME)
+        if cmds.shelfLayout(SHELF_NAME, exists=True):
+            CharDepTools.delete_shelf(SHELF_NAME)
 
         cmds.shelfLayout(SHELF_NAME, parent="ShelfLayout")
         cmds.shelfTabLayout("ShelfLayout", edit=True, selectTab=SHELF_NAME)
@@ -461,14 +501,15 @@ def onMayaDroppedPythonFile(obj):
 
     elif os.path.basename(__file__) == 'button_installer.py':
         CharDepTools.script()
-        om.MGlobal.displayInfo('The ' + os.path.split(__file__)[0] + ' installation was successful.')
+        dir_name = os.path.dirname(__file__)
 
+        om.MGlobal.displayInfo('The ' + os.path.basename(dir_name) + ' installation was successful.')
 
 
 if __name__ == '__main__':
-
-    tool_folder_path = r"/Utilities/script_template"
-    om.MGlobal.displayInfo('The was successfully executed.')
+    pass
+    # tool_folder_path = r"/Utilities/script_template"
+    # om.MGlobal.displayInfo('The was successfully executed.')
 
 
 
