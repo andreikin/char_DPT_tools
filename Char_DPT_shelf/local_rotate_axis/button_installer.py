@@ -329,13 +329,18 @@ class ToolDataAssembler:
                 with open(self.json_path, 'r', encoding='cp1251') as f:
                     return json.load(f)
         else:
-            with open(self.json_path, 'r') as f:
-                json_data = json.load(f)
-                out = dict()
-                for k, v in json_data.items():
-                    val = v.encode('utf-8') if isinstance(v, str) else v
-                    out[k.encode('utf-8')] = val
-                return out
+            try:
+                with open(self.json_path, 'r') as f:
+                    json_data = json.load(f)
+                    out = dict()
+                    for k, v in json_data.items():
+                        val = v.encode('utf-8') if isinstance(v, str) else v
+                        out[k.encode('utf-8')] = val
+                    return out
+
+            except Exception as massage:
+                print (massage)
+                return dict()
 
     @staticmethod
     def __convert_bytes_to_str(data):
