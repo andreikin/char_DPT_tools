@@ -284,12 +284,14 @@ class ToolDataAssembler:
         menu_item_python = list()
 
         items_folder = os.path.join(self.tool_folder_path, self.ITEMS_FOLDER_NAME)
-
+        print ("items_folder", items_folder)
+        print ("os.path.exists(items_folder)", os.path.exists(items_folder))
         if os.path.exists(items_folder):
             for i, item in enumerate(os.listdir(items_folder)):
                 item_file = os.path.join(self.tool_folder_path, self.ITEMS_FOLDER_NAME, item)
                 menu_item.append([item, self.command(item_file)])
                 menu_item_python.append(i)
+        print (menu_item)
         return menu_item, menu_item_python
 
     @staticmethod

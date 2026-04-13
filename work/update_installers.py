@@ -9,7 +9,7 @@ def update_directory(directory):
         'button_installer.py'
     )
 
-    current_file = os.path.abspath(r"D:\Projects\Python\char_dpt_tools\Utilities\base_installer.py")
+    current_file = os.path.abspath(r"D:\Projects\Python\char_dpt_tools\work\base_installer.py")
 
     with open(current_file, 'rb') as f:
         current_content = f.read()
@@ -30,4 +30,4 @@ def update_directory(directory):
 if __name__ == '__main__':
     update_directory(r'D:\Projects\Python\char_dpt_tools\Char_DPT_tools')
     update_directory(r'D:\Projects\Python\char_dpt_tools\Char_DPT_shelf')
-    update_directory(r'D:\Projects\Python\char_dpt_tools\Utilities\script_template')
+    update_directory(r'D:\Projects\Python\char_dpt_tools\info')
