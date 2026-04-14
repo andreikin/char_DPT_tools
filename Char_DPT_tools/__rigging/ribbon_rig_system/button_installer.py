@@ -449,7 +449,7 @@ class CharDepTools:
             structure = ToolsStructure(path).build_structure()
             other_scripts = structure.pop('other_scripts')
 
-            for group, item_list in structure.items():
+            for group, item_list in sorted(structure.items()):
 
                 group_name = re.sub(r'^_{1,2}', '', group)
                 cmds.menuItem('fld' + group, label=group_name, tearOff=True, sm=True, p=menu)
@@ -457,7 +457,7 @@ class CharDepTools:
                     item_data = ToolDataAssembler(item_path).item_data
                     item_data['parent'] = 'fld' + group
                     cmds.menuItem(**item_data)
-            for item_path in other_scripts:
+            for item_path in sorted(other_scripts):
                 item_data = ToolDataAssembler(item_path).item_data
                 item_data['parent'] = menu
                 cmds.menuItem(**item_data)
@@ -483,11 +483,11 @@ class CharDepTools:
         structure = ToolsStructure(os.path.dirname(__file__)).build_structure()
         other_scripts = structure.pop('other_scripts')
 
-        for group, btn_list in structure.items():
+        for group, btn_list in sorted(structure.items()):
             for btn_path in btn_list:
                 cmds.shelfButton(**ToolDataAssembler(btn_path).button_data)
             cmds.separator(parent=SHELF_NAME, style="shelf", highlightColor=[0.321569, 0.521569, 0.65098], height=30)
-        for btn_path in other_scripts:
+        for btn_path in sorted(other_scripts):
             cmds.shelfButton(**ToolDataAssembler(btn_path).button_data)
 
     @staticmethod
