@@ -182,7 +182,7 @@ class ScriptLauncher:
         Copies this launcher file into Maya's user scripts directory
         """
         srs = __file__
-        dst = os.path.join(maya_paths()['scripts_path'], 'launcher.py')
+        dst = os.path.join(maya_paths()['maya_app_dir'], 'scripts', 'launcher.py')
         shutil.copy(srs, dst)
 
 
@@ -577,11 +577,10 @@ class CharDepTools:
         Adds menu creation command into Maya userSetup.py
         so the menu loads automatically on Maya startup.
         """
-        filename = os.path.join(maya_paths()['scripts_path'], "userSetup.py")
+        filename = os.path.join(maya_paths()['maya_app_dir'], 'scripts', 'userSetup.py')
 
         command_lines = ["import maya.cmds as cmds",
-                         "from launcher import CharDepTools",
-                         "CharDepTools.menu()"]
+                         "cmds.evalDeferred('from launcher import CharDepTools; CharDepTools.menu()')"]
         try:
             with open(filename, 'r') as f:
                 lines = [l.rstrip('\n') for l in f.readlines()]
@@ -606,6 +605,9 @@ def maya_paths():
 
     pattern_icons = r'.+' + maya_version + '/prefs/icons'
     paths['icon_path'] = [x for x in os.environ['XBMLANGPATH'].split(';') if re.match(pattern_icons, x)][0]
+
+    paths['maya_app_dir'] = os.environ.get('MAYA_APP_DIR')
+
     return paths
 
 
