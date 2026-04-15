@@ -207,32 +207,41 @@ class ToolDataAssembler:
         self.shelf_label = json_data.get('shelf_label', self.label)
         self.hotkey = json_data.get('hotkey')
 
-    @staticmethod
-    def hotkey_command(tool_folder_path):
-        """Builds a MEL command string that executes with hotkey."""
-        python_code = 'from launcher import * ; ScriptLauncher().launch("' + tool_folder_path + '")'
-        python_code_escaped = python_code.replace('\\', '\\\\').replace('"', '\\"')
-        mel_command = 'python("' + python_code_escaped + '")'
-        return mel_command
-
     def add_hotkey(self):
         """
         Creates a Maya hotkey for the tool based on data from data.json.
         """
+        runtime_cmd = self.label + '_runtime_cmd'
+
         if not self.hotkey or not self.hotkey.get("key"):
+            if cmds.runTimeCommand(runtime_cmd, exists=True):
+                cmds.runTimeCommand(runtime_cmd, edit=True, delete=True)
             return
 
-        name = self.label + 'hotkey'
-        command_string = self.hotkey_command(self.tool_folder_path)
-        cmds.nameCommand(name, annotation=self.annotation, command=command_string)
+        runtime_name_cmd = self.label + '_runtime_name_cmd'
+        command = 'from launcher import * ; ScriptLauncher().launch(r"' + self.tool_folder_path + '")'
 
-        # --- Hotkey ---
+
+
+        cmds.runTimeCommand(
+            runtime_cmd,
+            annotation='My Runtime Tool',
+            category='Custom',
+            command=command
+        )
+
+        cmds.nameCommand(
+            runtime_name_cmd,
+            annotation='My Runtime Tool',
+            command=runtime_cmd
+        )
+
         cmds.hotkey(
             keyShortcut=self.hotkey.get('key'),
             ctrlModifier=self.hotkey.get('ctl'),
-            shiftModifier=self.hotkey.get('shif'),
+            shiftModifier=self.hotkey.get('shift'),
             altModifier=self.hotkey.get('alt'),
-            name=name
+            name=runtime_name_cmd,
         )
         om.MGlobal.displayInfo('The ' + self.label + ' hotkey added successful.')
 
@@ -284,14 +293,11 @@ class ToolDataAssembler:
         menu_item_python = list()
 
         items_folder = os.path.join(self.tool_folder_path, self.ITEMS_FOLDER_NAME)
-        print ("items_folder", items_folder)
-        print ("os.path.exists(items_folder)", os.path.exists(items_folder))
         if os.path.exists(items_folder):
             for i, item in enumerate(os.listdir(items_folder)):
                 item_file = os.path.join(self.tool_folder_path, self.ITEMS_FOLDER_NAME, item)
                 menu_item.append([item, self.command(item_file)])
                 menu_item_python.append(i)
-        print (menu_item)
         return menu_item, menu_item_python
 
     @staticmethod
