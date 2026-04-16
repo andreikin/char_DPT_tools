@@ -211,39 +211,42 @@ class ToolDataAssembler:
         """
         Creates a Maya hotkey for the tool based on data from data.json.
         """
-        runtime_cmd = self.label + '_runtime_cmd'
-
-        if not self.hotkey or not self.hotkey.get("key"):
+        try:
+            runtime_cmd = self.label + '_runtime_cmd'
             if cmds.runTimeCommand(runtime_cmd, exists=True):
                 cmds.runTimeCommand(runtime_cmd, edit=True, delete=True)
-            return
 
-        runtime_name_cmd = self.label + '_runtime_name_cmd'
-        command = 'from launcher import * ; ScriptLauncher().launch(r"' + self.tool_folder_path + '")'
+            if not self.hotkey or not self.hotkey.get("key"):
+                return
 
+            runtime_name_cmd = self.label + '_runtime_name_cmd'
+            command = 'from launcher import * ; ScriptLauncher().launch(r"' + self.tool_folder_path + '")'
 
+            cmds.runTimeCommand(
+                runtime_cmd,
+                annotation='My Runtime Tool',
+                category='Custom',
+                command=command
+            )
 
-        cmds.runTimeCommand(
-            runtime_cmd,
-            annotation='My Runtime Tool',
-            category='Custom',
-            command=command
-        )
+            cmds.nameCommand(
+                runtime_name_cmd,
+                annotation='My Runtime Tool',
+                command=runtime_cmd
+            )
 
-        cmds.nameCommand(
-            runtime_name_cmd,
-            annotation='My Runtime Tool',
-            command=runtime_cmd
-        )
+            cmds.hotkey(
+                keyShortcut=self.hotkey.get('key'),
+                ctrlModifier=self.hotkey.get('ctl'),
+                shiftModifier=self.hotkey.get('shift'),
+                altModifier=self.hotkey.get('alt'),
+                name=runtime_name_cmd,
+            )
+            om.MGlobal.displayInfo('The ' + self.label + ' hotkey added successful.')
 
-        cmds.hotkey(
-            keyShortcut=self.hotkey.get('key'),
-            ctrlModifier=self.hotkey.get('ctl'),
-            shiftModifier=self.hotkey.get('shift'),
-            altModifier=self.hotkey.get('alt'),
-            name=runtime_name_cmd,
-        )
-        om.MGlobal.displayInfo('The ' + self.label + ' hotkey added successful.')
+        except Exception as massage:
+            om.MGlobal.displayError('Error in ' + self.label)
+            om.MGlobal.displayError(massage)
 
     @property
     def item_data(self):
