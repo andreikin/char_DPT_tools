@@ -132,7 +132,7 @@ class ScriptLauncher:
             module_path = None
 
             if os.path.exists(module_folder) and os.listdir(module_folder):
-                module_path = os.path.join(module_folder, os.listdir(module_folder)[0])
+                module_path = module_folder  # os.path.join(module_folder, os.listdir(module_folder)[0])
 
             py_path = os.path.join(tool_folder_path, 'script.py')
             mel_path = os.path.join(tool_folder_path, 'script.mel')
@@ -140,6 +140,7 @@ class ScriptLauncher:
             self.increment_script_counter(os.path.basename(tool_folder_path))
 
             if os.path.exists(py_path):
+                print ('+++++++++++++++++++++++++++++++', tool_folder_path)
                 self.run_python(py_path, module_path)
                 return
             elif os.path.exists(mel_path):
