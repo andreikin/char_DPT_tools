@@ -140,7 +140,6 @@ class ScriptLauncher:
             self.increment_script_counter(os.path.basename(tool_folder_path))
 
             if os.path.exists(py_path):
-                print ('+++++++++++++++++++++++++++++++', tool_folder_path)
                 self.run_python(py_path, module_path)
                 return
             elif os.path.exists(mel_path):

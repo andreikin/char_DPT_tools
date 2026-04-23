@@ -1,5 +1,5 @@
 
-from controller_tools import *    # CreateControl
+from controller_tools.controller_tools import *    # CreateControl
 
 controller_tools()
 
