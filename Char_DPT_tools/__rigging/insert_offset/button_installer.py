@@ -53,6 +53,7 @@ import sys
 sys.dont_write_bytecode = True
 
 from contextlib import contextmanager
+import inspect
 import os
 import re
 import shutil
@@ -61,13 +62,23 @@ import maya.cmds as cmds
 import maya.mel as mel
 import maya.OpenMaya as om
 
-from PySide2 import QtCore, QtWidgets
-from PySide2.QtCore import QSettings
+try:
+    STRING_TYPES = (basestring,)
+except NameError:
+    STRING_TYPES = (str,)
+
+try:
+    from PySide2 import QtCore, QtWidgets
+    from PySide2.QtCore import QSettings
+except ImportError:
+    from PySide6 import QtCore, QtWidgets
+    from PySide6.QtCore import QSettings
 
 INSTALLER_VERSION = '1.0.0'
 MENU = 'script_manager_menu'
 MENU_LABEL = 'Char_DPT_tools'
 SHELF_NAME = "Char_DPT_shelf"
+DROP_INSTALLER_NAMES = set(['menu_installer.py', 'shelf_installer.py', 'button_installer.py'])
 
 
 class ScriptLauncher:
@@ -99,8 +110,63 @@ class ScriptLauncher:
         try:
             yield
         finally:
-            if added:
+            if added and path in sys.path:
                 sys.path.remove(path)
+
+    def _module_names_from_path(self, module_path):
+        """
+        Collects local module names to avoid stale imports between tools.
+        """
+        names = set()
+        if not module_path or not os.path.isdir(module_path):
+            return names
+
+        for root, dirs, files in os.walk(module_path):
+            for file_name in files:
+                if file_name.endswith('.py') and file_name != '__init__.py':
+                    names.add(os.path.splitext(file_name)[0])
+            for dir_name in dirs:
+                if os.path.isfile(os.path.join(root, dir_name, '__init__.py')):
+                    names.add(dir_name)
+        return names
+
+    def _purge_local_modules(self, module_path=None, module_names=None):
+        """
+        Removes modules loaded from a tool package so another tool cannot reuse them accidentally.
+        """
+        module_names = module_names or set()
+        norm_path = os.path.normcase(os.path.abspath(module_path)) if module_path else None
+
+        for name, module in list(sys.modules.items()):
+            root_name = name.split('.')[0]
+            should_remove = name in module_names or root_name in module_names
+
+            module_file = getattr(module, '__file__', None)
+            if norm_path and module_file:
+                try:
+                    norm_file = os.path.normcase(os.path.abspath(module_file))
+                    should_remove = should_remove or norm_file == norm_path or norm_file.startswith(norm_path + os.sep)
+                except Exception:
+                    pass
+
+            if should_remove:
+                sys.modules.pop(name, None)
+
+    def _remove_nested_sys_paths(self, module_path):
+        """
+        Removes paths added by script.py bootstraps from inside the package module folder.
+        """
+        if not module_path:
+            return
+        norm_path = os.path.normcase(os.path.abspath(module_path))
+        for path in list(sys.path):
+            try:
+                norm_item = os.path.normcase(os.path.abspath(path))
+            except Exception:
+                continue
+            if norm_item == norm_path or norm_item.startswith(norm_path + os.sep):
+                while path in sys.path:
+                    sys.path.remove(path)
 
     def run_python(self, py_path, module_path=None):
         """
@@ -109,8 +175,14 @@ class ScriptLauncher:
         if os.path.exists(py_path):
             globals_dict = {"__file__": py_path, "__name__": "__main__"}
             if module_path:
-                with self.temp_sys_path(module_path):
-                    exec (compile(open(py_path, "rb").read(), py_path, 'exec'), globals_dict)
+                module_names = self._module_names_from_path(module_path)
+                self._purge_local_modules(module_names=module_names)
+                try:
+                    with self.temp_sys_path(module_path):
+                        exec (compile(open(py_path, "rb").read(), py_path, 'exec'), globals_dict)
+                finally:
+                    self._purge_local_modules(module_path=module_path, module_names=module_names)
+                    self._remove_nested_sys_paths(module_path)
             else:
                 exec (compile(open(py_path, "rb").read(), py_path, 'exec'), globals_dict)
 
@@ -146,7 +218,7 @@ class ScriptLauncher:
                 self.run_mel(mel_path)
 
         except Exception as message:
-            cmds.error(message)
+            om.MGlobal.displayError(message)
 
     def increment_script_counter(self, script_name):
         """
@@ -174,15 +246,16 @@ class ScriptLauncher:
             om.MGlobal.displayInfo('The ' + script_name + ' script was successfully executed.')
 
         except Exception as message:
-            cmds.error(message)
+            om.MGlobal.displayError(message)
 
     @staticmethod
-    def copy_launcher():
+    def copy_launcher(source_file=None):
         """
         Copies this launcher file into Maya's user scripts directory
         """
-        srs = __file__
-        dst = os.path.join(maya_paths()['maya_app_dir'], 'scripts', 'launcher.py')
+        paths = maya_paths()
+        srs = source_file or __file__
+        dst = os.path.join(paths['scripts_path'], 'launcher.py')
         shutil.copy(srs, dst)
 
 
@@ -245,8 +318,8 @@ class ToolDataAssembler:
             om.MGlobal.displayInfo('The ' + self.label + ' hotkey added successful.')
 
         except Exception as massage:
-            cmds.error('Error in ' + self.label)
-            cmds.error(massage)
+            om.MGlobal.displayError('Error in ' + self.label)
+            om.MGlobal.displayError(massage)
 
     @property
     def item_data(self):
@@ -475,10 +548,10 @@ class CharDepTools:
             cmds.menuItem("set path", l="Set path to scripts folder", p=menu, c=CharDepTools.set_path)
 
         except Exception as massage:
-            cmds.error (massage)
+            om.MGlobal.displayError (massage)
 
     @staticmethod
-    def shelf():
+    def shelf(installer_file=None):
         """
         Creates a dedicated Maya shelf and fills it with tool buttons.
         """
@@ -489,7 +562,8 @@ class CharDepTools:
         cmds.shelfLayout(SHELF_NAME, parent="ShelfLayout")
         cmds.shelfTabLayout("ShelfLayout", edit=True, selectTab=SHELF_NAME)
 
-        structure = ToolsStructure(os.path.dirname(__file__)).build_structure()
+        source_file = installer_file or __file__
+        structure = ToolsStructure(os.path.dirname(source_file)).build_structure()
         other_scripts = structure.pop('other_scripts')
 
         for group, btn_list in sorted(structure.items()):
@@ -500,11 +574,12 @@ class CharDepTools:
             cmds.shelfButton(**ToolDataAssembler(btn_path).button_data)
 
     @staticmethod
-    def script():
+    def script(installer_file=None):
         """
         Adds a single shelf button for the current script directory.
         """
-        script_dir = os.path.dirname(os.path.abspath(__file__))
+        source_file = installer_file or __file__
+        script_dir = os.path.dirname(os.path.abspath(source_file))
         data_obj = ToolDataAssembler(script_dir)
         cmds.shelfButton(**data_obj.button_data)
 
@@ -578,7 +653,7 @@ class CharDepTools:
                 QSettings("Char_DTP_tools", "Settings").setValue("path", lib_path)
                 CharDepTools.menu()
         except Exception as e:
-            cmds.error(e)
+            om.MGlobal.displayError(e)
 
     @staticmethod
     def add_command_to_user_setup():
@@ -586,7 +661,7 @@ class CharDepTools:
         Adds menu creation command into Maya userSetup.py
         so the menu loads automatically on Maya startup.
         """
-        filename = os.path.join(maya_paths()['maya_app_dir'], 'scripts', 'userSetup.py')
+        filename = os.path.join(maya_paths()['scripts_path'], 'userSetup.py')
 
         command_lines = ["import maya.cmds as cmds",
                          "cmds.evalDeferred('from launcher import CharDepTools; CharDepTools.menu()')"]
@@ -600,24 +675,138 @@ class CharDepTools:
                 with open(filename, 'a') as f:
                     f.write(command + '\n')
 
+def _maya_version_folder():
+    """
+    Returns the active Maya major version folder name, e.g. 2019 or 2025.
+    """
+    version = str(cmds.about(version=True))
+    match = re.search(r'(20\d{2})', version)
+    return match.group(1) if match else version.split()[0]
+
+
+def _maya_app_root():
+    """
+    Returns Maya preferences root without binding to one Maya version.
+    """
+    maya_app_dir = os.environ.get('MAYA_APP_DIR')
+    if maya_app_dir:
+        return maya_app_dir.split(os.pathsep)[0]
+    try:
+        return cmds.internalVar(userAppDir=True)
+    except Exception:
+        return os.path.join(os.path.expanduser('~'), 'Documents', 'maya')
+
+
+def _ensure_dir(path):
+    path = os.path.normpath(path)
+    if not os.path.isdir(path):
+        os.makedirs(path)
+    return path
+
+
+def _maya_user_script_dir():
+    try:
+        path = cmds.internalVar(userScriptDir=True)
+    except Exception:
+        path = os.path.join(_maya_app_root(), _maya_version_folder(), 'scripts')
+    return _ensure_dir(path)
+
+
+def _maya_user_icon_dir(scripts_path):
+    try:
+        path = cmds.internalVar(userBitmapsDir=True)
+    except Exception:
+        path = os.path.join(os.path.dirname(scripts_path), 'prefs', 'icons')
+    return _ensure_dir(path)
+
+
 def maya_paths():
     """
-    Detects Maya user directories for:
-        - scripts
-        - icons
+    Detects current-version Maya user directories for Maya 2019 and Maya 2025.
     """
+    scripts_path = _maya_user_script_dir()
+    maya_app_dir = os.path.dirname(os.path.normpath(scripts_path))
+
     paths = dict()
-    maya_version = cmds.about(version=True)
-
-    pattern_scripts = r'.+' + maya_version + '/prefs/scripts'
-    paths['scripts_path'] = [x for x in os.environ['MAYA_SCRIPT_PATH'].split(';') if re.match(pattern_scripts, x)][0]
-
-    pattern_icons = r'.+' + maya_version + '/prefs/icons'
-    paths['icon_path'] = [x for x in os.environ['XBMLANGPATH'].split(';') if re.match(pattern_icons, x)][0]
-
-    paths['maya_app_dir'] = os.environ.get('MAYA_APP_DIR')
+    paths['maya_version'] = _maya_version_folder()
+    paths['maya_app_root'] = _maya_app_root()
+    paths['maya_app_dir'] = maya_app_dir
+    paths['scripts_path'] = scripts_path
+    paths['icon_path'] = _maya_user_icon_dir(scripts_path)
 
     return paths
+
+
+def _dropped_python_file_from_stack():
+    """
+    Maya 2022+ keeps same-named dropped modules cached. When button_installer.py
+    is reused from cache, __file__ points to the first dropped installer, so the
+    real dropped file has to be read from Maya's executeDroppedPythonFile frame.
+    """
+    try:
+        for frame_info in inspect.stack():
+            for value in frame_info.frame.f_locals.values():
+                if not isinstance(value, STRING_TYPES):
+                    continue
+                normalized = os.path.normpath(value)
+                if os.path.basename(normalized) in DROP_INSTALLER_NAMES and os.path.isfile(normalized):
+                    return os.path.abspath(normalized)
+    except Exception:
+        pass
+    return os.path.abspath(__file__)
+
+
+def _uncache_dropped_module(installer_file=None):
+    """
+    Prevents the next Maya drag-and-drop from reusing this installer module.
+    """
+    module_names = set([__name__, os.path.splitext(os.path.basename(__file__))[0]])
+    if installer_file:
+        module_names.add(os.path.splitext(os.path.basename(installer_file))[0])
+
+    for module_name in module_names:
+        if module_name and module_name != '__main__':
+            sys.modules.pop(module_name, None)
+
+
+def _patch_maya_drop_import_cache():
+    """
+    Makes Maya reload same-named dropped installer files during this session.
+    """
+    try:
+        import maya.app.general.executeDroppedPythonFile as dropped_python_file
+    except Exception:
+        return False
+
+    if getattr(dropped_python_file, '_char_dpt_drop_patch', False):
+        return True
+
+    original_execute = dropped_python_file.executeDroppedPythonFile
+
+    def executeDroppedPythonFile(dropped_file, obj):
+        dropped_name = os.path.basename(os.path.normpath(dropped_file))
+        module_name = os.path.splitext(dropped_name)[0]
+        should_uncache = dropped_name in DROP_INSTALLER_NAMES
+
+        if should_uncache:
+            sys.modules.pop(module_name, None)
+            try:
+                import importlib
+                if hasattr(importlib, 'invalidate_caches'):
+                    importlib.invalidate_caches()
+            except Exception:
+                pass
+
+        try:
+            return original_execute(dropped_file, obj)
+        finally:
+            if should_uncache:
+                sys.modules.pop(module_name, None)
+
+    dropped_python_file._char_dpt_original_executeDroppedPythonFile = original_execute
+    dropped_python_file.executeDroppedPythonFile = executeDroppedPythonFile
+    dropped_python_file._char_dpt_drop_patch = True
+    return True
 
 
 def onMayaDroppedPythonFile(obj):
@@ -634,29 +823,34 @@ def onMayaDroppedPythonFile(obj):
         - Adds startup command to userSetup.py
     """
 
-    ScriptLauncher.copy_launcher()
-    CharDepTools.add_command_to_user_setup()
+    installer_file = _dropped_python_file_from_stack()
+    installer_dir = os.path.dirname(installer_file)
+    installer_name = os.path.basename(installer_file)
 
-    if os.path.basename(__file__) == 'menu_installer.py':
-        # save tools path
-        path = os.path.dirname(__file__)
-        QSettings("Char_DTP_tools", "Settings").setValue("path", path)
-        # add menu
-        CharDepTools.menu()
-        om.MGlobal.displayInfo('The ' + MENU_LABEL + ' menu installation was successful.')
+    try:
+        _patch_maya_drop_import_cache()
+        ScriptLauncher.copy_launcher(installer_file)
+        CharDepTools.add_command_to_user_setup()
 
-    elif os.path.basename(__file__) == 'shelf_installer.py':
-        CharDepTools.shelf()
-        om.MGlobal.displayInfo('The ' + SHELF_NAME + ' shelf installation was successful.')
+        if installer_name == 'menu_installer.py':
+            # save tools path
+            QSettings("Char_DTP_tools", "Settings").setValue("path", installer_dir)
+            # add menu
+            CharDepTools.menu()
+            om.MGlobal.displayInfo('The ' + MENU_LABEL + ' menu installation was successful.')
 
-    elif os.path.basename(__file__) == 'button_installer.py':
-        CharDepTools.script()
-        dir_name = os.path.dirname(__file__)
+        elif installer_name == 'shelf_installer.py':
+            CharDepTools.shelf(installer_file)
+            om.MGlobal.displayInfo('The ' + SHELF_NAME + ' shelf installation was successful.')
 
-        om.MGlobal.displayInfo('The ' + os.path.basename(dir_name) + ' installation was successful.')
+        elif installer_name == 'button_installer.py':
+            CharDepTools.script(installer_file)
+            om.MGlobal.displayInfo('The ' + os.path.basename(installer_dir) + ' installation was successful.')
+    finally:
+        _uncache_dropped_module(installer_file)
 
 
-
+_patch_maya_drop_import_cache()
 
 
 

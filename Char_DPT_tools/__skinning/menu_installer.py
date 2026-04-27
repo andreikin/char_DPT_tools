@@ -146,7 +146,7 @@ class ScriptLauncher:
                 self.run_mel(mel_path)
 
         except Exception as message:
-            om.MGlobal.displayError(message)
+            cmds.error(message)
 
     def increment_script_counter(self, script_name):
         """
@@ -174,7 +174,7 @@ class ScriptLauncher:
             om.MGlobal.displayInfo('The ' + script_name + ' script was successfully executed.')
 
         except Exception as message:
-            om.MGlobal.displayError(message)
+            cmds.error(message)
 
     @staticmethod
     def copy_launcher():
@@ -245,8 +245,8 @@ class ToolDataAssembler:
             om.MGlobal.displayInfo('The ' + self.label + ' hotkey added successful.')
 
         except Exception as massage:
-            om.MGlobal.displayError('Error in ' + self.label)
-            om.MGlobal.displayError(massage)
+            cmds.error('Error in ' + self.label)
+            cmds.error(massage)
 
     @property
     def item_data(self):
@@ -475,7 +475,7 @@ class CharDepTools:
             cmds.menuItem("set path", l="Set path to scripts folder", p=menu, c=CharDepTools.set_path)
 
         except Exception as massage:
-            om.MGlobal.displayError (massage)
+            cmds.error (massage)
 
     @staticmethod
     def shelf():
@@ -578,7 +578,7 @@ class CharDepTools:
                 QSettings("Char_DTP_tools", "Settings").setValue("path", lib_path)
                 CharDepTools.menu()
         except Exception as e:
-            om.MGlobal.displayError(e)
+            cmds.error(e)
 
     @staticmethod
     def add_command_to_user_setup():
