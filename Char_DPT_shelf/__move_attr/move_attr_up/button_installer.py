@@ -132,7 +132,7 @@ class ScriptLauncher:
             module_path = None
 
             if os.path.exists(module_folder) and os.listdir(module_folder):
-                module_path = module_folder  # os.path.join(module_folder, os.listdir(module_folder)[0])
+                module_path = module_folder
 
             py_path = os.path.join(tool_folder_path, 'script.py')
             mel_path = os.path.join(tool_folder_path, 'script.mel')
@@ -312,6 +312,7 @@ class ToolDataAssembler:
         command += ('tool_folder_path = r"' + tool_folder_path + '"\n')
         command += 'ScriptLauncher().launch(tool_folder_path)'
         return command
+
 
     def get_icon(self):
         """
