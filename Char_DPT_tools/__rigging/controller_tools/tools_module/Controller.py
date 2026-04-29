@@ -3,8 +3,8 @@ import maya.OpenMaya as om
 import logging
 
 
-from controller_library import ControllerLibrary
-from utilities import namespace_off, suffix_minus, rename_shape, unique_names_generator
+from .controller_library import ControllerLibrary
+from .utilities import namespace_off, suffix_minus, rename_shape, unique_names_generator
 
 logger = logging.getLogger(__name__)
 logger.handlers = []

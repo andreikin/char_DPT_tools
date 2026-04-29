@@ -326,5 +326,5 @@ def geo_skeleton():
     dyn_win = CreateSkeletonUi()
     dyn_win.show()
 
-if __name__ == '__main__':
-    geo_skeleton()
+
+geo_skeleton()

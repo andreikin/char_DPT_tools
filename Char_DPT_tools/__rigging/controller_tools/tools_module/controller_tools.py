@@ -4,10 +4,12 @@ import maya.cmds as cmds
 from PySide2.QtCore import *
 from PySide2.QtWidgets import *
 from maya.app.general.mayaMixin import MayaQWidgetBaseMixin  # for parent ui to maya
-from Controller import Controller
-from attributes import move_up_attribute, move_down_attribute
-from maya_widgets import *
-from utilities import rename_shape
+
+
+from .attributes import move_up_attribute, move_down_attribute
+from .maya_widgets import *
+from .utilities import rename_shape
+from .Controller import Controller
 
 ABOUT_SCRIPT = "\n" \
                "Latest updates:                                     \n" \
