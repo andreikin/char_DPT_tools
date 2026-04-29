@@ -424,5 +424,5 @@ def rename_object():
     print ("----------------------------")
     win.show()
 
-if __name__ == '__main__':
-    rename_object()
+
+rename_object()

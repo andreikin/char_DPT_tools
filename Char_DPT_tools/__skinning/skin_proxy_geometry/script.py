@@ -419,5 +419,4 @@ def skin_proxy_geometry():
     dyn_win.show()
 
 
-if __name__ == '__main__':
-    skin_proxy_geometry()
+skin_proxy_geometry()
