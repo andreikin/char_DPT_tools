@@ -1,3 +1,5 @@
+
+from __future__ import absolute_import
 import re
 import maya.cmds as cmds
 import maya.OpenMaya as om

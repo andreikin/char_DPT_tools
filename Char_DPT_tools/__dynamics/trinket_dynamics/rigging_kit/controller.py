@@ -4,9 +4,9 @@ import re
 import maya.cmds as cmds
 import maya.OpenMaya as om
 
-from rigging_kit.names import suffix_minus, rename_shape, unique_names_generator, namespace_off
-from rigging_kit.utilities import connect_via_reverse, distance
-from rigging_kit.controllers_library import ControllerLibrary
+from .names import suffix_minus, rename_shape, unique_names_generator, namespace_off
+from .utilities import connect_via_reverse, distance
+from .controllers_library import ControllerLibrary
 
 
 GLOBAL_SIZE = 1

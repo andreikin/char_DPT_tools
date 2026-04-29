@@ -9,11 +9,11 @@ import maya.cmds as cmds
 import maya.OpenMaya as om
 import maya.mel as mm
 
-from rigging_kit.utilities import distance
-from rigging_kit.names import unique_names_generator, divide_name, suffix_minus
-from rigging_kit.controller import Controller
-from rigging_kit.connect import an_connectRigVis
-from rigging_kit.maya_widgets import FloatSliderGrp, TextFieldButtonGrp, RadioButtonGrp
+from trinket_dynamics.rigging_kit.utilities import distance
+from trinket_dynamics.rigging_kit.names import unique_names_generator, divide_name, suffix_minus
+from trinket_dynamics.rigging_kit.controller import Controller
+from trinket_dynamics.rigging_kit.connect import an_connectRigVis
+from trinket_dynamics.rigging_kit.maya_widgets import FloatSliderGrp, TextFieldButtonGrp, RadioButtonGrp
 
 
 """
@@ -263,10 +263,9 @@ class PandantDyn_Ui(MayaQWidgetBaseMixin, QMainWindow):
         help_dialog.exec_()
         logger.debug(" executed")
 
-def dynamics_pendant():
+def trinket_dynamics():
     win = PandantDyn_Ui()
     win.show()
 
 
-if __name__ == '__main__':
-    dynamics_pendant()
+trinket_dynamics()

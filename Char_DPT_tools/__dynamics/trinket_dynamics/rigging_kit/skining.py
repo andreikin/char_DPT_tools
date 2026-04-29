@@ -6,7 +6,7 @@ from random import uniform
 import maya.cmds as cmds
 import maya.mel as mm
 
-from rigging_kit.utilities import distance
+from .utilities import distance
 
 """
         an_skinProcedures

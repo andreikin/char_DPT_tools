@@ -7,7 +7,7 @@ import sys
 import maya.OpenMaya as om
 import maya.cmds as cmds
 
-from rigging_kit.names import namespace_off
+from .names import namespace_off
 
 
 PFX_PATTERN = '^(L_|R_|l_|r_|left_|right_|Left_|Right_)'
