@@ -767,8 +767,8 @@ def corrective_joints():
     win.show()
 
 
-if __name__ == '__main__':
-    corrective_joints()
+
+corrective_joints()
 
 
 
