@@ -1,4 +1,4 @@
 {
     "shelf_label": "LOD",
-    "annotation": "Прячет геометрию LOD"
+    "annotation": "Включает и выключает видимость у геометрии типа LOD"
 }

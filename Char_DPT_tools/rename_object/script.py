@@ -36,7 +36,6 @@ class MyWindow(MayaQWidgetBaseMixin, QMainWindow):
         self.central_widget = QWidget(self)
         self.setCentralWidget(self.central_widget)
         self.layout = QVBoxLayout(self.central_widget)
-        #self.setFixedSize(465, 300)
 
         # help and About script windows menu_bar
         menuBar = QMenuBar()
@@ -82,7 +81,6 @@ class MyWindow(MayaQWidgetBaseMixin, QMainWindow):
             self.comboBox_pfx.addItem(pfx)
         self.gridLayout.addWidget(self.comboBox_pfx, 1, 0, 1, 1)
         self.lineEdit_name = QLineEdit()
-        #self.lineEdit_name.setFixedWidth(207)
         self.lineEdit_name.setClearButtonEnabled(True)
         self.lineEdit_name.setPlaceholderText("Type name")
         self.gridLayout.addWidget(self.lineEdit_name, 1, 1, 1, 1)
@@ -129,7 +127,6 @@ class MyWindow(MayaQWidgetBaseMixin, QMainWindow):
         self.lineEdit_serch = QLineEdit()
         self.lineEdit_serch.setClearButtonEnabled(True)
         self.lineEdit_serch.setPlaceholderText("Type your own prefix")
-        #self.lineEdit_serch.setFixedWidth(207)
         self.serchGridLayout.addWidget(self.lineEdit_serch, 1, 1, 1, 1)
 
         self.btn_add_pfx = QPushButton("Add pfx to selected")
@@ -143,11 +140,9 @@ class MyWindow(MayaQWidgetBaseMixin, QMainWindow):
         self.lineEdit_replace = QLineEdit()
         self.lineEdit_replace.setClearButtonEnabled(True)
         self.lineEdit_replace.setPlaceholderText("Type your own prefix")
-        #self.lineEdit_replace.setFixedWidth(207)
         self.serchGridLayout.addWidget(self.lineEdit_replace, 2, 1, 1, 1)
 
         self.btn_add_pfx2 = QPushButton("Add pfx to selected")
-        #self.btn_add_pfx2.setFixedWidth(137)
         self.serchGridLayout.addWidget(self.btn_add_pfx2, 2, 2, 1, 1)
         self.btn_add_pfx2.clicked.connect(lambda: self.add_pfx(""))
         self.raplace_box_layout.addLayout(self.serchGridLayout)
@@ -158,64 +153,29 @@ class MyWindow(MayaQWidgetBaseMixin, QMainWindow):
         self.line1.setFrameShadow(QFrame.Sunken)
         self.raplace_box_layout.addWidget(self.line1)
 
-        self.serch_button_HLayout = QHBoxLayout()  # buttons 2
-        self.serch_button_HLayout.setSpacing(3)
-        self.raplace_box_layout.addLayout(self.serch_button_HLayout)
-        self.button_close = QPushButton('Close')
-        self.serch_button_HLayout.addWidget(self.button_close)
-        self.button_close.clicked.connect(self.close)
+        self.button_HLayout_A = QHBoxLayout()  # buttons 1
+        self.button_HLayout_A.setSpacing(3)
+        self.raplace_box_layout.addLayout(self.button_HLayout_A)
         self.btn_replace_hierarchy = QPushButton("Replace hierarchy")
-        self.serch_button_HLayout.addWidget(self.btn_replace_hierarchy)
+        self.button_HLayout_A.addWidget(self.btn_replace_hierarchy)
         self.btn_replace_hierarchy.clicked.connect(lambda: self.serch_and_replace(True))
         self.btn_replace = QPushButton("Replace")
-        self.serch_button_HLayout.addWidget(self.btn_replace)
+        self.button_HLayout_A.addWidget(self.btn_replace)
         self.btn_replace.clicked.connect(lambda: self.serch_and_replace(False))
+
+        self.button_HLayout_B = QHBoxLayout()  # buttons 2
+        self.button_HLayout_B.setSpacing(3)
+        self.raplace_box_layout.addLayout(self.button_HLayout_B)
+        self.button_close = QPushButton('Close')
+        self.button_HLayout_B.addWidget(self.button_close)
+        self.button_close.clicked.connect(self.close)
+        self.btn_replace_hierarchy = QPushButton("Delete namespace")
+        self.button_HLayout_B.addWidget(self.btn_replace_hierarchy)
+        self.btn_replace_hierarchy.clicked.connect(self.kill_reference_namespace)
 
         # load settings
         self.settings = QSettings("anRename", "Settings")
         self.load_settings()
-
-        style_sheet = """ 
-            QLineEdit { border-radius: 3 ; 
-                /*height: 20px;*/
-                background-color: rgb(40, 40, 40); 
-                border:1px solid rgb(40, 40, 40);
-                }
-            
-            QLineEdit:hover  { 
-                border:1px solid rgb(118, 118, 118);
-                }
-
-
-            QGridLayout { margin: 0; }     
-            QPushButton { 
-                border-radius: 3px;
-                border: 1px solid rgb(60, 60, 60);
-                /*height: 20px;*/
-                background-color: rgb(100, 100, 100); 
-                border-style: outset;} 
-            
-            QPushButton:pressed { background-color: rgb(0, 0, 0); }
-
-            QPushButton:hover { background-color: rgb(130, 130, 130);}
-            
-            QGroupBox { border-radius: 3 ;
-                padding-top: 15 px;
-                background-color: rgb(80, 80, 80); }
-            QGroupBox::title {
-                subcontrol-origin: margin;
-                font-weight: bold;
-                subcontrol-position: top left;  
-                padding: 5 10px;
-                }
-            QComboBox {
-                border-radius: 3px;
-                width: 50px;
-                /*height: 20px;*/
-                background-color: rgb(40, 40, 40); }
-                }
-            """
-        #self.setStyleSheet(style_sheet)
 
     def load_settings(self):
         """
@@ -412,6 +372,20 @@ class MyWindow(MayaQWidgetBaseMixin, QMainWindow):
                     if len(cmds.ls(new_name)) == 0:
                         return new_name
                         break
+
+    @staticmethod
+    def kill_reference_namespace():
+        # kill reference nodes
+        refs = cmds.ls(type='reference') or []
+        for ref in refs:
+            cmds.lockNode(ref, lock=False)
+            cmds.delete(ref)
+
+        # kill namespaces
+        namespaces = cmds.namespaceInfo(listOnlyNamespaces=True) or []
+        for ns in namespaces:
+            if ns not in ('UI', 'shared'):
+                cmds.namespace(removeNamespace=ns, mergeNamespaceWithRoot=True)
 
 
 def rename_object():
