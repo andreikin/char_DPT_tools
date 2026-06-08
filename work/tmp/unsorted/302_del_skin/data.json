@@ -1,5 +1,0 @@
-{
-    "command": "DetachSkin",
-    "annotation": "Удалить скин кластер",
-    "sourceType": "mel"
-}
