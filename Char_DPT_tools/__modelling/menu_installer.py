@@ -48,11 +48,11 @@ Installation:
     After installation, Maya will recreate the menu automatically
     on every startup.
 """
-
 import sys
 sys.dont_write_bytecode = True
 
-from contextlib import contextmanager
+import imp
+import importlib
 import os
 import re
 import shutil
@@ -86,33 +86,35 @@ class ScriptLauncher:
     def __init__(self, stats_json_path="U:\CharDptRepository\char_dpt_tools\scripts_stats.json"):
         self.stats_json_path = stats_json_path
 
-    @contextmanager
-    def temp_sys_path(self, path):
-        """
-        Context manager that temporarily inserts a path into sys.path.
-        """
-        if path not in sys.path:
-            sys.path.insert(0, path)
-            added = True
-        else:
-            added = False
-        try:
-            yield
-        finally:
-            if added:
-                sys.path.remove(path)
-
-    def run_python(self, py_path, module_path=None):
+    @staticmethod
+    def run_python(tool_path):
         """
         Executes a Python script in an isolated global context.
         """
-        if os.path.exists(py_path):
-            globals_dict = {"__file__": py_path, "__name__": "__main__"}
-            if module_path:
-                with self.temp_sys_path(module_path):
-                    exec (compile(open(py_path, "rb").read(), py_path, 'exec'), globals_dict)
-            else:
-                exec (compile(open(py_path, "rb").read(), py_path, 'exec'), globals_dict)
+        # add __init__ if need
+        if not os.path.exists(os.path.join(tool_path, "__init__.py")):
+            open(os.path.join(tool_path, "__init__.py"), "w").close()
+
+        # add module to sys.path
+        added = False
+        tool_dir = os.path.dirname(tool_path)
+        if os.path.exists(tool_dir):
+            if tool_dir not in sys.path:
+                sys.path.insert(0, tool_dir)
+                added = True
+
+        # load or reload
+        module_name = os.path.basename(tool_path) + ".script"
+        if module_name in sys.modules:
+            imp.reload(sys.modules[module_name])
+        else:
+            importlib.import_module(module_name)
+
+        if added:
+            sys.path.remove(tool_dir)
+
+        os.remove(os.path.join(tool_path, "__init__.py"))
+
 
     def run_mel(self, script_path):
         """
@@ -132,7 +134,7 @@ class ScriptLauncher:
             module_path = None
 
             if os.path.exists(module_folder) and os.listdir(module_folder):
-                module_path = module_folder  # os.path.join(module_folder, os.listdir(module_folder)[0])
+                module_path = module_folder
 
             py_path = os.path.join(tool_folder_path, 'script.py')
             mel_path = os.path.join(tool_folder_path, 'script.mel')
@@ -140,13 +142,13 @@ class ScriptLauncher:
             self.increment_script_counter(os.path.basename(tool_folder_path))
 
             if os.path.exists(py_path):
-                self.run_python(py_path, module_path)
+                self.run_python(tool_folder_path)
                 return
             elif os.path.exists(mel_path):
                 self.run_mel(mel_path)
 
         except Exception as message:
-            om.MGlobal.displayError(message)
+            cmds.error(message)
 
     def increment_script_counter(self, script_name):
         """
@@ -174,7 +176,7 @@ class ScriptLauncher:
             om.MGlobal.displayInfo('The ' + script_name + ' script was successfully executed.')
 
         except Exception as message:
-            om.MGlobal.displayError(message)
+            cmds.error(message)
 
     @staticmethod
     def copy_launcher():
@@ -184,6 +186,7 @@ class ScriptLauncher:
         srs = __file__
         dst = os.path.join(maya_paths()['maya_app_dir'], 'scripts', 'launcher.py')
         shutil.copy(srs, dst)
+        om.MGlobal.displayInfo('The ' + dst + ' script was successfully copied.')
 
 
 class ToolDataAssembler:
@@ -245,8 +248,8 @@ class ToolDataAssembler:
             om.MGlobal.displayInfo('The ' + self.label + ' hotkey added successful.')
 
         except Exception as massage:
-            om.MGlobal.displayError('Error in ' + self.label)
-            om.MGlobal.displayError(massage)
+            cmds.error('Error in ' + self.label)
+            cmds.error(massage)
 
     @property
     def item_data(self):
@@ -312,6 +315,7 @@ class ToolDataAssembler:
         command += ('tool_folder_path = r"' + tool_folder_path + '"\n')
         command += 'ScriptLauncher().launch(tool_folder_path)'
         return command
+
 
     def get_icon(self):
         """
@@ -475,7 +479,7 @@ class CharDepTools:
             cmds.menuItem("set path", l="Set path to scripts folder", p=menu, c=CharDepTools.set_path)
 
         except Exception as massage:
-            om.MGlobal.displayError (massage)
+            cmds.error (massage)
 
     @staticmethod
     def shelf():
@@ -578,7 +582,7 @@ class CharDepTools:
                 QSettings("Char_DTP_tools", "Settings").setValue("path", lib_path)
                 CharDepTools.menu()
         except Exception as e:
-            om.MGlobal.displayError(e)
+            cmds.error(e)
 
     @staticmethod
     def add_command_to_user_setup():

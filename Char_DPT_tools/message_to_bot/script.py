@@ -296,5 +296,5 @@ def message_to_bot():
     dyn_win.show()
 
 
-if __name__ == '__main__':
-    message_to_bot()
+
+message_to_bot()
